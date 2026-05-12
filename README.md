@@ -1,159 +1,132 @@
-# Turborepo starter
+# ☕ CafeScope Backend Monorepo
 
-This Turborepo starter is maintained by the Turborepo core team.
+CafeScope adalah platform **Sistem Informasi Geografis (GIS) berbasis komunitas** yang dirancang khusus untuk membantu pengguna menemukan cafe yang "produktif" (cocok untuk bekerja, belajar, atau *meeting*).
 
-## Using this example
+Sistem ini memecahkan masalah efisiensi pencarian tempat dengan menyediakan informasi relevan berbasis konteks (seperti ketersediaan colokan, koneksi WiFi, dan tingkat kebisingan) serta memanfaatkan data interaktif secara *real-time* dari kontribusi komunitas.
 
-Run the following command:
+## 🏗 Arsitektur Sistem
 
-```sh
-npx create-turbo@latest
+CafeScope Backend dibangun menggunakan arsitektur **Microservices** modern berbasis monorepo:
+
+* **Monorepo Management:** Turborepo & pnpm Workspaces
+* **Framework Utama:** NestJS
+* **Komunikasi Antar-Service:** *Synchronous Point-to-Point* menggunakan `Transport.TCP` (Tanpa *message broker* eksternal untuk menjaga sistem tetap proporsional dan ringan).
+* **Database Pattern:** *Database-per-service* menggunakan PostgreSQL.
+
+### Daftar Microservices
+
+1. **API Gateway (HTTP - Port 3030):** Titik masuk tunggal (entry point) bagi aplikasi *client* (Web/Mobile). Menerima *request* REST API dan me-*routing* permintaan ke *microservices* terkait via TCP.
+2. **User Service (TCP - Port 3031):** Mengelola autentikasi, otorisasi, dan manajemen identitas pengguna (Pengguna Umum, Pemilik Cafe, Admin). Terhubung ke **User DB** (PostgreSQL).
+3. **Cafe Service (TCP - Port 3032):** Mengelola *master data* cafe, fasilitas, dan jam operasional. Terhubung ke **Cafe DB** (PostgreSQL + **PostGIS** untuk pengolahan data geospasial/koordinat peta).
+4. **Discovery Service (TCP - Port 3033):** Menangani logika pencarian dan filter berbasis konteks. Service ini bersifat agregator dan akan meminta data dari *Cafe Service* dan *Community Service*. Tidak memiliki database mandiri.
+5. **Community Service (TCP - Port 3034):** Mengelola fitur sosial seperti *check-in*, laporan kondisi *real-time*, dan ulasan pengguna. Terhubung ke **Community DB** (PostgreSQL).
+6. **Notification Service (TCP - Port 3035):** Service pendukung yang bertugas mengirimkan pesan (Email / Push Notification) berdasarkan pemicu dari service lain. Tidak memiliki database mandiri.
+
+## 📂 Struktur Direktori
+
+Proyek ini dikelola dalam bentuk *monorepo* untuk memudahkan *sharing code* dan *deployment*. Berikut adalah gambaran arsitektur foldernya:
+
+```text
+cafescope/
+├── apps/                       # Direktori utama untuk semua service NestJS
+│   ├── api-gateway/            # Aplikasi Gateway (Pintu masuk HTTP)
+│   ├── cafe-service/           # Microservice untuk kelola data cafe
+│   ├── community-service/      # Microservice untuk ulasan & check-in
+│   ├── discovery-service/      # Microservice agregator untuk fungsi search
+│   ├── notification-service/   # Microservice untuk push notification & email
+│   └── user-service/           # Microservice untuk kelola pengguna
+├── packages/                   # (Opsional) Tempat menyimpan kode yang dibagikan antar service
+│   ├── database/               # (Rekomendasi) Berisi schema Prisma Client agar bisa di-import oleh service
+│   └── shared-types/           # (Rekomendasi) Berisi DTO, Interface, atau Enum yang dipakai bersama
+├── docker-compose.yml          # Konfigurasi container untuk menjalankan 3 database lokal (PostgreSQL & PostGIS)
+├── package.json                # Daftar dependency global dan kumpulan perintah (scripts) Turbo
+├── pnpm-workspace.yaml         # Konfigurasi workspace agar pnpm mengenali folder apps/ dan packages/
+├── turbo.json                  # Konfigurasi pipeline build & dev dari Turborepo
+└── README.md                   # Dokumentasi proyek (file ini)
+
 ```
 
-## What's inside?
+## 🛠 Prasyarat Sistem
 
-This Turborepo includes the following packages/apps:
+Sebelum menjalankan proyek ini, pastikan sistem kamu sudah terinstal perangkat lunak berikut:
 
-### Apps and Packages
+1. **Node.js** (v18 atau lebih baru)
+2. **pnpm** (Package manager, instal via `npm i -g pnpm`)
+3. **Docker & Docker Compose** (Untuk menjalankan ketiga database secara lokal)
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+## 🚀 Tata Cara Instalasi
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+Ikuti langkah-langkah berikut untuk menginisialisasi *environment* pengembangan di komputer lokal kamu:
 
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+1. **Clone Repositori (Jika belum)**
+```bash
+git clone <url-repo-cafescope>
+cd cafescope
 ```
 
-Without global `turbo`, use your package manager:
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
+2. **Install Dependensi**
+Gunakan `pnpm` di direktori *root* untuk menginstal seluruh dependensi aplikasi dan *packages*.
+```bash
+pnpm install
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
+3. **Jalankan Infrastruktur Database (Docker)**
+Nyalakan kontainer PostgreSQL dan PostGIS. Perintah ini akan berjalan di *background* (`-d`).
+```bash
+docker-compose up -d
 ```
 
-Without global `turbo`:
 
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+*Catatan: Pastikan port `5432`, `5433`, dan `5434` tidak sedang digunakan oleh aplikasi lain.*
+
+## 🏃‍♂️ Cara Menjalankan Aplikasi
+
+Berkat **Turborepo**, kamu memiliki fleksibilitas untuk menjalankan seluruh *service* sekaligus atau hanya *service* tertentu saja yang sedang kamu kembangkan.
+
+### Opsi 1: Menjalankan SEMUA Service (Disarankan)
+
+Gunakan perintah ini di direktori *root* untuk menyalakan API Gateway dan ke-5 Microservices secara paralel.
+
+```bash
+pnpm dev
 ```
 
-### Develop
+> Turborepo akan mengeksekusi *script* `start:dev` ke seluruh aplikasi yang ada di dalam folder `apps/`.
 
-To develop all apps and packages, run the following command:
+### Opsi 2: Menjalankan PER Service (Spesifik)
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+Jika kamu hanya ingin fokus mengembangkan satu *service* tanpa harus menyalakan semuanya (misal komputer sedang berat), kamu bisa memanfaatkan *flag* `--filter` dari pnpm.
 
-```sh
-cd my-turborepo
-turbo dev
+Jalankan perintah ini di direktori *root*:
+
+**Menyalakan hanya API Gateway:**
+
+```bash
+pnpm --filter api-gateway dev
 ```
 
-Without global `turbo`, use your package manager:
+**Menyalakan hanya User Service:**
 
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
+```bash
+pnpm --filter user-service dev
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+*(Ganti `user-service` dengan nama folder aplikasi lain di dalam `apps/` sesuai kebutuhan, seperti `cafe-service`, `discovery-service`, dll).*
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+## 🌐 Referensi Port & Database
 
-```sh
-turbo dev --filter=web
-```
+Berikut adalah daftar konfigurasi port lokal agar mudah diakses saat *development*:
 
-Without global `turbo`:
+| Aplikasi / Service | Tipe Akses | Port Lokal | Terhubung ke DB |
+| --- | --- | --- | --- |
+| **API Gateway** | HTTP (REST) | `3030` | - |
+| **User Service** | TCP (Internal) | `3031` | `user-db` (Port: 5432) |
+| **Cafe Service** | TCP (Internal) | `3032` | `cafe-db` (PostGIS - Port: 5433) |
+| **Discovery Service** | TCP (Internal) | `3033` | - |
+| **Community Service** | TCP (Internal) | `3034` | `community-db` (Port: 5434) |
+| **Notification Svc** | TCP (Internal) | `3035` | - |
 
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+Untuk menguji apakah Gateway sudah terhubung dengan Microservice secara TCP, jalankan seluruh service (`pnpm dev`) lalu akses *endpoint* test berikut di browser atau Postman:
+`GET http://localhost:3030/users/ping`

@@ -1,0 +1,42 @@
+version: '3.8'
+services:
+  user-db:
+    image: postgres:18-alpine
+    container_name: cafescope-user-db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: user_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+
+  cafe-db:
+    image: postgis/postgis:17-3.5-alpine
+    container_name: cafescope-cafe-db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: cafe_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - cafe-db-data:/var/lib/postgresql/data
+
+  community-db:
+    image: postgres:18-alpine
+    container_name: cafescope-community-db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: community_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - community-db-data:/var/lib/postgresql/data
+
+volumes:
+  user-db-data:
+  cafe-db-data:
+  community-db-data:
