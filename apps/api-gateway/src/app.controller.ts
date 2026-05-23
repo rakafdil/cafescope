@@ -9,7 +9,6 @@ export class AppController {
 
   @Get('ping')
   pingUserService() {
-    // Mengirim pattern 'ping_user' ke User Service via TCP
     return this.userServiceClient.send(
       { cmd: 'ping_user' },
       { data: 'Hello from Gateway!' },

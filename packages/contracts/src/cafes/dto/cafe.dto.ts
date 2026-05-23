@@ -1,33 +1,32 @@
 import {
-  IsString,
+  IsBoolean,
+  IsNotEmpty,
   IsNumber,
   IsOptional,
-  ValidateNested,
-  IsNotEmpty,
+  IsString,
+  Max,
   Min,
-  IsIn,
+  ValidateNested,
 } from "class-validator";
 import { Type } from "class-transformer";
 
 export class FacilityDto {
-  @IsNumber()
-  @Min(0, { message: "Kapasitas colokan tidak boleh minus" })
-  electricPortCapacity!: number;
+  @IsBoolean()
+  @IsOptional()
+  hasWifi?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  hasPlugs?: boolean;
 
   @IsNumber()
-  @Min(0, { message: "Bandwidth WiFi tidak boleh minus" })
-  wifiBandwidth!: number;
-
-  @IsNumber()
-  @Min(0, { message: "Total kursi tidak boleh minus" })
-  seatTotal!: number;
+  @Min(0, { message: "Kapasitas tempat duduk tidak boleh minus" })
+  @IsOptional()
+  seatingCapacity?: number | null;
 
   @IsString()
-  @IsNotEmpty()
-  @IsIn(["Tenang", "Sedang", "Bising"], {
-    message: "Tingkat kebisingan harus antara Tenang, Sedang, atau Bising",
-  })
-  noiseLevel!: string;
+  @IsOptional()
+  noiseLevel?: string | null;
 }
 
 export class CreateCafeDto {
@@ -43,19 +42,42 @@ export class CreateCafeDto {
   @IsOptional()
   description?: string;
 
-  // Koordinat spasial untuk database PostGIS
-  @IsNumber()
-  latitude!: number;
-
-  @IsNumber()
-  longitude!: number;
-
   @IsString()
   @IsNotEmpty({ message: "Alamat lengkap wajib diisi" })
-  addressText!: string;
+  address!: string;
 
-  // Validasi nested object untuk fasilitas
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  @IsOptional()
+  latitude?: number;
+
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  @IsOptional()
+  longitude?: number;
+
   @ValidateNested()
   @Type(() => FacilityDto)
-  facility!: FacilityDto;
+  @IsOptional()
+  facility?: FacilityDto;
+}
+
+export class UpdateCafeDto {
+  @IsString()
+  @IsOptional()
+  ownerId?: string | null;
+
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @IsString()
+  @IsOptional()
+  description?: string | null;
+
+  @IsString()
+  @IsOptional()
+  address?: string;
 }

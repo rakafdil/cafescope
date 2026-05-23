@@ -1,1 +1,98 @@
+### Get all cafes
 GET http://localhost:3030/cafes
+
+### Get cafe by id
+GET http://localhost:3030/cafes/8257bdab-9e2f-4f3b-9135-d39b00e88066
+
+### Create a new cafe
+POST http://localhost:3030/cafes
+Content-Type: application/json
+
+{
+	"ownerId": "user-1",
+	"name": "Kedai Kopi Contoh",
+	"description": "Cafe nyaman untuk belajar",
+	"address": "Jalan Mawar No.1",
+	"latitude": -6.200000,
+	"longitude": 106.816666,
+	"facility": {
+		"hasWifi": true,
+		"hasPlugs": true,
+		"seatingCapacity": 40,
+		"noiseLevel": "low"
+	}
+}
+
+### Update cafe basic info
+PUT http://localhost:3030/cafes/8257bdab-9e2f-4f3b-9135-d39b00e88066
+Content-Type: application/json
+
+{
+	"name": "Kedai Kopi Contoh (Updated)",
+	"description": "Deskripsi diperbarui",
+	"address": "Jalan Mawar No.1A"
+}
+
+### Geocode address
+POST http://localhost:3030/cafes/geocode/8257bdab-9e2f-4f3b-9135-d39b00e88066
+
+### Delete a cafe
+DELETE http://localhost:3030/cafes/8257bdab-9e2f-4f3b-9135-d39b00e88066
+
+### Update location
+PUT http://localhost:3030/cafes/8257bdab-9e2f-4f3b-9135-d39b00e88066/location
+Content-Type: application/json
+
+{
+	"latitude": -6.201234,
+	"longitude": 106.817890
+}
+
+### Remove location
+DELETE http://localhost:3030/cafes/8257bdab-9e2f-4f3b-9135-d39b00e88066/location
+
+### Update facilities
+PUT http://localhost:3030/cafes/8257bdab-9e2f-4f3b-9135-d39b00e88066/facilities
+Content-Type: application/json
+
+{
+	"hasWifi": true,
+	"hasPlugs": false,
+	"seatingCapacity": 50,
+	"noiseLevel": "medium"
+}
+
+### Remove facilities
+DELETE http://localhost:3030/cafes/8257bdab-9e2f-4f3b-9135-d39b00e88066/facilities
+
+### Update operational hours
+PUT http://localhost:3030/cafes/8257bdab-9e2f-4f3b-9135-d39b00e88066/operational-hours
+Content-Type: application/json
+
+{
+	"hours": [
+		{ "dayOfWeek": 0, "openTime": "08:00", "closeTime": "17:00", "isClosed": false },
+		{ "dayOfWeek": 1, "openTime": "08:00", "closeTime": "20:00", "isClosed": false }
+	]
+}
+
+### Remove operational hours
+DELETE http://localhost:3030/cafes/8257bdab-9e2f-4f3b-9135-d39b00e88066/operational-hours
+
+### Create a claim for a cafe
+POST http://localhost:3030/cafes/8257bdab-9e2f-4f3b-9135-d39b00e88066/claims
+Content-Type: application/json
+
+{
+	"userId": "user-2",
+	"proofUrl": "https://example.com/proof.jpg",
+	"status": "PENDING"
+}
+
+### Update claim status
+PATCH http://localhost:3030/cafes/claims/claim-456/status
+Content-Type: application/json
+
+{
+	"status": "APPROVED"
+}

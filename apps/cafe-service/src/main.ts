@@ -13,7 +13,9 @@ async function bootstrap() {
       },
     },
   );
+
+  app.enableShutdownHooks();
   await app.listen();
-  console.log('User Service is listening on TCP port 3032');
+  console.log('Cafe Service is listening on TCP port 3032');
 }
-bootstrap();
+void bootstrap();

@@ -1,0 +1,44 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "test:cafe-service",
+			"type": "shell",
+			"command": "pnpm",
+			"args": [
+				"--filter",
+				"cafe-service",
+				"test"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "build:cafe-service",
+			"type": "shell",
+			"command": "pnpm",
+			"args": [
+				"--filter",
+				"cafe-service",
+				"build"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "lint:cafe-service",
+			"type": "shell",
+			"command": "pnpm",
+			"args": [
+				"--filter",
+				"cafe-service",
+				"lint"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		}
+	]
+}

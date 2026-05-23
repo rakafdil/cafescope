@@ -1,0 +1,77 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"] 
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [postgis] 
+}
+
+model Cafe {
+  id          String   @id @default(uuid())
+  ownerId     String?  
+  name        String   
+  description String?  
+  address     String   
+
+  location    Unsupported("geography(Point, 4326)")?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  claims           Claim[]
+  facility         Facility?
+  operationalHours OperationalHours[]
+
+  @@map("cafes") 
+}
+
+model Claim {
+  id          String      @id @default(uuid())
+  userId      String      
+  cafeId      String      
+  status      ClaimStatus @default(PENDING) 
+  proofUrl    String?     
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  cafe        Cafe        @relation(fields: [cafeId], references: [id], onDelete: Cascade)
+
+  @@map("claims")
+}
+
+model Facility {
+  id              String  @id @default(uuid())
+  cafeId          String  @unique 
+  
+  hasWifi         Boolean @default(false) 
+  hasPlugs        Boolean @default(false) 
+  seatingCapacity Int?    
+  noiseLevel      String? 
+
+  cafe            Cafe    @relation(fields: [cafeId], references: [id], onDelete: Cascade)
+
+  @@map("facilities")
+}
+
+model OperationalHours {
+  id        String  @id @default(uuid())
+  cafeId    String  
+  dayOfWeek Int     
+  openTime  String? 
+  closeTime String? 
+  isClosed  Boolean @default(false) 
+
+  cafe      Cafe    @relation(fields: [cafeId], references: [id], onDelete: Cascade)
+
+  @@unique([cafeId, dayOfWeek]) 
+  @@map("operational_hours")
+}
+
+enum ClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
