@@ -7,22 +7,64 @@ export class CafeRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll() {
-    return this.prisma.cafe.findMany({
+    const cafes = await this.prisma.cafe.findMany({
       include: {
         facility: true,
         operationalHours: true,
+        claims: true,
       },
+    });
+
+    if (cafes.length === 0) return [];
+
+    const locations = await this.prisma.$queryRaw<
+      { id: string; latitude: number | null; longitude: number | null }[]
+    >`
+      SELECT 
+        id, 
+        ST_Y(location::geometry) AS latitude, 
+        ST_X(location::geometry) AS longitude
+      FROM cafes
+      WHERE id IN (${Prisma.join(cafes.map((c) => c.id))})
+    `;
+
+    return cafes.map((cafe) => {
+      const loc = locations.find((l) => l.id === cafe.id);
+      return {
+        ...cafe,
+        latitude: loc?.latitude ?? null,
+        longitude: loc?.longitude ?? null,
+      };
     });
   }
 
   async findOne(cafeId: string) {
-    return this.prisma.cafe.findUnique({
+    const cafe = await this.prisma.cafe.findUnique({
       where: { id: cafeId },
       include: {
         facility: true,
         operationalHours: true,
+        claims: true,
       },
     });
+
+    if (!cafe) return null;
+
+    const [location] = await this.prisma.$queryRaw<
+      { latitude: number | null; longitude: number | null }[]
+    >`
+      SELECT 
+        ST_Y(location::geometry) AS latitude, 
+        ST_X(location::geometry) AS longitude
+      FROM cafes
+      WHERE id = ${cafeId}
+    `;
+
+    return {
+      ...cafe,
+      latitude: location?.latitude ?? null,
+      longitude: location?.longitude ?? null,
+    };
   }
 
   async createCafe(data: Prisma.CafeCreateInput) {

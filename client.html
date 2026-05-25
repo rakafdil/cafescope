@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Cafe API Client</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.33.0/dist/tabler-icons.min.css" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Roboto, sans-serif
+    }
+
+    body {
+      background: #f1f5f9;
+      padding: 28px;
+      color: #1e293b;
+      min-height: 100vh
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 20px;
+      max-width: 1280px;
+      margin: 0 auto
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px
+    }
+
+    .main {
+      display: flex;
+      flex-direction: column;
+      gap: 16px
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px;
+      border: 0.5px solid #e2e8f0
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: 14px
+    }
+
+    input[type=text],
+    input[type=number] {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      font-size: 13px;
+      color: #1e293b;
+      background: #fff;
+      outline: none;
+      transition: border-color .15s
+    }
+
+    input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, .1)
+    }
+
+    .input-label {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 5px;
+      display: block
+    }
+
+    .input-group {
+      margin-bottom: 12px
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap
+    }
+
+    .btn-ghost {
+      background: #f1f5f9;
+      color: #475569
+    }
+
+    .btn-ghost:hover {
+      background: #e2e8f0
+    }
+
+    .btn-dark {
+      background: #1e293b;
+      color: #fff
+    }
+
+    .btn-dark:hover {
+      background: #0f172a
+    }
+
+    .btn-blue {
+      background: #3b82f6;
+      color: #fff
+    }
+
+    .btn-blue:hover {
+      background: #2563eb
+    }
+
+    .btn-red {
+      background: #fee2e2;
+      color: #ef4444
+    }
+
+    .btn-red:hover {
+      background: #ef4444;
+      color: #fff
+    }
+
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 11px
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      margin-bottom: 10px
+    }
+
+    .btn-full {
+      width: 100%;
+      justify-content: center;
+      margin-bottom: 10px
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #f1f5f9;
+      margin: 12px 0
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 7px
+    }
+
+    .cafe-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 12px
+    }
+
+    .cafe-card {
+      border: 0.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      transition: all .15s;
+      background: #fff
+    }
+
+    .cafe-card:hover {
+      border-color: #3b82f6;
+      background: #f8fafc;
+      transform: translateY(-1px)
+    }
+
+    .cafe-card.active {
+      border-color: #3b82f6;
+      background: #eff6ff
+    }
+
+    .cafe-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: #eff6ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      color: #3b82f6;
+      flex-shrink: 0;
+      overflow: hidden
+    }
+
+    .cafe-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover
+    }
+
+    .cafe-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1e293b;
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+
+    .cafe-addr {
+      font-size: 11px;
+      color: #64748b;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .cafe-id-tag {
+      font-size: 10px;
+      color: #cbd5e1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 8px;
+    }
+
+    .info-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .info-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-weight: 500;
+    }
+
+    .info-badge.location {
+      background: #eff6ff;
+      color: #3b82f6;
+    }
+
+    .info-badge.no-location {
+      background: #fee2e2;
+      color: #ef4444;
+    }
+
+    .info-badge.facility {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .info-badge.hours {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px
+    }
+
+    .pill-online {
+      background: #dcfce7;
+      color: #15803d
+    }
+
+    .pill-offline {
+      background: #fef3c7;
+      color: #92400e
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor
+    }
+
+    #map {
+      height: 320px;
+      border-radius: 10px;
+      border: 0.5px solid #e2e8f0;
+      overflow: hidden
+    }
+
+    .custom-marker-container {
+      background: none !important;
+      border: none !important
+    }
+
+    @keyframes marker-pulse {
+      0% {
+        transform: scale(0.6);
+        opacity: 1;
+      }
+
+      100% {
+        transform: scale(1.4);
+        opacity: 0;
+      }
+    }
+
+    .response-panel {
+      background: #0f172a;
+      border-radius: 14px;
+      overflow: hidden
+    }
+
+    .response-tabs {
+      display: flex;
+      border-bottom: 1px solid #1e293b
+    }
+
+    .rtab {
+      padding: 10px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      border: none;
+      background: none;
+      transition: color .15s
+    }
+
+    .rtab.active {
+      color: #38bdf8;
+      border-bottom: 2px solid #38bdf8
+    }
+
+    .response-body {
+      padding: 16px
+    }
+
+    .r-pretty {
+      color: #f8fafc
+    }
+
+    .r-json {
+      color: #10b981;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      max-height: 280px;
+      overflow-y: auto;
+      line-height: 1.6
+    }
+
+    .r-card {
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 10px
+    }
+
+    .r-card:last-child {
+      margin-bottom: 0
+    }
+
+    .r-field {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 6px 0;
+      border-bottom: 0.5px solid #334155;
+      gap: 12px
+    }
+
+    .r-field:last-child {
+      border-bottom: none;
+      padding-bottom: 0
+    }
+
+    .r-key {
+      font-size: 11px;
+      color: #64748b;
+      flex-shrink: 0;
+      padding-top: 1px
+    }
+
+    .r-val {
+      font-size: 12px;
+      color: #e2e8f0;
+      text-align: right;
+      word-break: break-all
+    }
+
+    .r-val.r-num {
+      color: #38bdf8;
+      font-family: monospace
+    }
+
+    .r-val.r-bool-true {
+      color: #4ade80
+    }
+
+    .r-val.r-bool-false {
+      color: #f87171
+    }
+
+    .r-val.r-null {
+      color: #94a3b8;
+      font-style: italic
+    }
+
+    .r-val.r-str {
+      color: #fbbf24
+    }
+
+    .r-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: #0f172a;
+      color: #94a3b8;
+      display: inline-block
+    }
+
+    .r-badge.success {
+      background: #064e3b;
+      color: #34d399
+    }
+
+    .r-badge.error {
+      background: #7f1d1d;
+      color: #fca5a5
+    }
+
+    .r-badge.demo {
+      background: #1e3a5f;
+      color: #7dd3fc
+    }
+
+    .r-empty {
+      color: #475569;
+      font-size: 13px;
+      padding: 20px 0;
+      text-align: center
+    }
+
+    .r-section-title {
+      font-size: 10px;
+      font-weight: 600;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      margin-bottom: 8px
+    }
+
+    .array-count {
+      font-size: 11px;
+      color: #64748b;
+      margin-bottom: 10px
+    }
+
+    .r-array-item {
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 8px
+    }
+
+    .r-array-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 0.5px solid #334155
+    }
+
+    .r-array-num {
+      font-size: 10px;
+      font-weight: 700;
+      color: #38bdf8;
+      background: #0c2a4a;
+      border-radius: 5px;
+      padding: 2px 7px
+    }
+
+    .flex-row {
+      display: flex;
+      gap: 12px
+    }
+
+    .flex-row>div {
+      flex: 1
+    }
+
+    @media(max-width:900px) {
+      .layout {
+        grid-template-columns: 1fr
+      }
+
+      .flex-row {
+        flex-direction: column
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="layout">
+    <div class="sidebar">
+      <!-- Action panel -->
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+          <i class="ti ti-coffee" style="font-size:20px;color:#3b82f6" aria-hidden="true"></i>
+          <span style="font-size:16px;font-weight:700;color:#1e293b">Cafe API Client</span>
+        </div>
+        <div class="input-group">
+          <span class="input-label">Target Cafe ID</span>
+          <input type="text" id="cafeId" value="8257bdab-9e2f-4f3b-9135-d39b00e88066" />
+        </div>
+        <div class="btn-grid">
+          <button class="btn btn-ghost" onclick="getAllCafes()"><i class="ti ti-list" aria-hidden="true"></i> All
+            Cafes</button>
+          <button class="btn btn-dark" onclick="getCafeById()"><i class="ti ti-search" aria-hidden="true"></i> By
+            ID</button>
+        </div>
+        <button class="btn btn-red btn-full" onclick="deleteCafe()"><i class="ti ti-trash" aria-hidden="true"></i>
+          Delete Cafe</button>
+        <hr>
+        <div class="section-label">Location</div>
+        <div class="btn-grid">
+          <button class="btn btn-ghost btn-sm" onclick="updateLocation()"><i class="ti ti-map-pin"
+              aria-hidden="true"></i> Update</button>
+          <button class="btn btn-ghost btn-sm" onclick="removeLocation()"><i class="ti ti-map-pin-off"
+              aria-hidden="true"></i> Remove</button>
+        </div>
+        <div class="section-label">Facilities</div>
+        <div class="btn-grid">
+          <button class="btn btn-ghost btn-sm" onclick="updateFacilities()"><i class="ti ti-building"
+              aria-hidden="true"></i> Update</button>
+          <button class="btn btn-ghost btn-sm" onclick="removeFacilities()"><i class="ti ti-building-off"
+              aria-hidden="true"></i> Remove</button>
+        </div>
+        <div class="section-label">Operational Hours</div>
+        <div class="btn-grid">
+          <button class="btn btn-ghost btn-sm" onclick="updateOperationalHours()"><i class="ti ti-clock"
+              aria-hidden="true"></i> Update</button>
+          <button class="btn btn-ghost btn-sm" onclick="removeOperationalHours()"><i class="ti ti-clock-off"
+              aria-hidden="true"></i> Remove</button>
+        </div>
+        <hr>
+        <button class="btn btn-ghost btn-full" onclick="geocodeAddress()"><i class="ti ti-location"
+            aria-hidden="true"></i> Geocode Address</button>
+        <div class="section-label" style="margin-top:10px">Claims</div>
+        <div class="btn-grid">
+          <button class="btn btn-ghost btn-sm" onclick="createClaim()"><i class="ti ti-plus" aria-hidden="true"></i>
+            Create</button>
+          <button class="btn btn-ghost btn-sm" onclick="updateClaimStatus()"><i class="ti ti-refresh"
+              aria-hidden="true"></i> Update Status</button>
+        </div>
+      </div>
+
+      <!-- Create / Update Form -->
+      <div class="card">
+        <div class="card-title">Create / Update Cafe</div>
+        <div class="input-group">
+          <span class="input-label">Cafe name</span>
+          <input type="text" id="formName" placeholder="e.g. Kopi Santai" />
+        </div>
+        <div class="input-group">
+          <span class="input-label">Description</span>
+          <input type="text" id="formDesc" placeholder="e.g. Tempat nyaman untuk kerja" />
+        </div>
+        <div class="input-group">
+          <span class="input-label">Address</span>
+          <input type="text" id="formAddress" placeholder="e.g. Jl. Merdeka No. 10" />
+        </div>
+        <div class="flex-row">
+          <div class="input-group">
+            <span class="input-label">Latitude</span>
+            <input type="number" id="formLat" placeholder="-6.200000" step="any" />
+          </div>
+          <div class="input-group">
+            <span class="input-label">Longitude</span>
+            <input type="number" id="formLng" placeholder="106.816666" step="any" />
+          </div>
+        </div>
+        <div class="btn-grid" style="margin-bottom:0">
+          <button class="btn btn-blue" onclick="createCafe()"><i class="ti ti-plus" aria-hidden="true"></i>
+            Create</button>
+          <button class="btn btn-dark" onclick="updateCafe()"><i class="ti ti-edit" aria-hidden="true"></i>
+            Update</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="main">
+      <!-- Cafe List -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <span class="card-title" style="margin-bottom:0">Cafe List</span>
+          <span id="apiStatus" class="status-pill pill-offline"><span class="dot"></span> Demo Mode</span>
+        </div>
+        <div id="cafeList" class="cafe-grid">
+          <p style="color:#94a3b8;font-size:13px">Loading cafes...</p>
+        </div>
+      </div>
+
+      <!-- Map -->
+      <div class="card">
+        <div class="card-title">Map</div>
+        <div id="map"></div>
+      </div>
+
+      <!-- JSON Response -->
+      <div class="response-panel">
+        <div class="response-tabs">
+          <button class="rtab active" id="tab-pretty" onclick="switchTab('pretty')"><i class="ti ti-layout-cards"
+              aria-hidden="true" style="font-size:13px"></i> Pretty</button>
+          <button class="rtab" id="tab-raw" onclick="switchTab('raw')"><i class="ti ti-code" aria-hidden="true"
+              style="font-size:13px"></i> Raw JSON</button>
+        </div>
+        <div class="response-body">
+          <div id="view-pretty" class="r-pretty">
+            <div class="r-empty"><i class="ti ti-terminal-2"
+                style="font-size:24px;display:block;margin-bottom:8px;opacity:.4" aria-hidden="true"></i>Belum ada
+              response. Jalankan aksi untuk melihat data.</div>
+          </div>
+          <div id="view-raw" style="display:none">
+            <pre class="r-json" id="response">No response yet.</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script>
+    const BASE_URL = 'http://localhost:3030';
+    let map = null, markersLayer = null, lastData = null, activeTab = 'pretty';
+
+    // Mock data updated strictly to reflect your example data structure
+    const MOCK_CAFES = [
+      {
+        "id": "f7251477-2ddf-406a-a149-924690f2529f",
+        "ownerId": "user-1",
+        "name": "Kedai Kopi Contoh",
+        "description": "Cafe nyaman untuk belajar",
+        "address": "Jalan Mawar No.1, Jakarta",
+        "createdAt": "2026-05-25T11:43:56.216Z",
+        "updatedAt": "2026-05-25T11:49:27.813Z",
+        "latitude": -6.200000,
+        "longitude": 106.816666,
+        "facility": {
+          "id": "612002f6-ca43-4d4a-b992-6c195971aae0",
+          "cafeId": "f7251477-2ddf-406a-a149-924690f2529f",
+          "hasWifi": true,
+          "hasPlugs": false,
+          "seatingCapacity": 50,
+          "noiseLevel": "medium"
+        },
+        "operationalHours": []
+      },
+      {
+        "id": "8257bdab-9e2f-4f3b-9135-d39b00e88066",
+        "ownerId": "user-1",
+        "name": "Kedai Kopi Contoh (Updated)",
+        "description": "Deskripsi diperbarui",
+        "address": "Jalan Mawar No.1A",
+        "createdAt": "2026-05-22T18:06:38.681Z",
+        "updatedAt": "2026-05-23T05:30:48.594Z",
+        "latitude": -6.229741,
+        "longitude": 106.815926,
+        "facility": {
+          "id": "7a7f9123-760c-4239-ad40-ff20d00f04e7",
+          "cafeId": "8257bdab-9e2f-4f3b-9135-d39b00e88066",
+          "hasWifi": true,
+          "hasPlugs": true,
+          "seatingCapacity": 40,
+          "noiseLevel": "low"
+        },
+        "operationalHours": [
+          {
+            "id": "7342c6ab-4b25-42ea-ac24-6648a1f6c533",
+            "cafeId": "8257bdab-9e2f-4f3b-9135-d39b00e88066",
+            "dayOfWeek": 0,
+            "openTime": "08:00",
+            "closeTime": "17:00",
+            "isClosed": false
+          },
+          {
+            "id": "8e124da2-019b-4441-b54e-ac39ff177c74",
+            "cafeId": "8257bdab-9e2f-4f3b-9135-d39b00e88066",
+            "dayOfWeek": 1,
+            "openTime": "08:00",
+            "closeTime": "20:00",
+            "isClosed": false
+          }
+        ]
+      }
+    ];
+
+    // Helper to robustly extract coordinates regardless of API structure differences
+    function getCoordinates(cafe) {
+      if (!cafe) return { lat: NaN, lng: NaN };
+      let lat = parseFloat(cafe.latitude || cafe.lat);
+      let lng = parseFloat(cafe.longitude || cafe.lng || cafe.lon);
+
+      // If flat properties fail, check for nested location objects (common API pattern)
+      if (isNaN(lat) || isNaN(lng)) {
+        if (cafe.location && typeof cafe.location === 'object') {
+          lat = parseFloat(cafe.location.latitude || cafe.location.lat);
+          lng = parseFloat(cafe.location.longitude || cafe.location.lng || cafe.location.lon);
+        }
+      }
+      return { lat, lng };
+    }
+
+    function makeSvgIcon(color = '#3b82f6', isActive = false) {
+      const scale = isActive ? 'scale(1.2)' : 'scale(1)';
+      const pulseHtml = isActive ? `<circle cx="15" cy="15" r="12" fill="none" stroke="${color}" stroke-width="2" style="transform-origin: 15px 15px; animation: marker-pulse 1.5s infinite;" />` : '';
+
+      return L.divIcon({
+        html: `
+          <svg width="30" height="42" viewBox="0 0 30 42" xmlns="http://www.w3.org/2000/svg" style="display:block;overflow:visible;filter:drop-shadow(0 2px 4px rgba(0,0,0,.35));transform:${scale};transition:transform 0.2s">
+            ${pulseHtml}
+            <path d="M15 0C6.71 0 0 6.71 0 15C0 26.25 15 42 15 42C15 42 30 26.25 30 15C30 6.71 23.29 0 15 0Z" fill="${color}"/>
+            <circle cx="15" cy="15" r="5.5" fill="#fff"/>
+          </svg>`,
+        className: 'custom-marker-container', iconSize: [30, 42], iconAnchor: [15, 42], popupAnchor: [0, -44]
+      });
+    }
+
+    function initMap() {
+      if (map) return;
+      map = L.map('map', { preferCanvas: false }).setView([-6.229741, 106.815926], 12);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd', maxZoom: 20
+      }).addTo(map);
+      markersLayer = L.featureGroup().addTo(map);
+    }
+
+    function getCafeId() { return document.getElementById('cafeId').value }
+
+    function switchTab(t) {
+      activeTab = t;
+      document.getElementById('view-pretty').style.display = t === 'pretty' ? 'block' : 'none';
+      document.getElementById('view-raw').style.display = t === 'raw' ? 'block' : 'none';
+      document.getElementById('tab-pretty').className = 'rtab' + (t === 'pretty' ? ' active' : '');
+      document.getElementById('tab-raw').className = 'rtab' + (t === 'raw' ? ' active' : '');
+    }
+
+    function valClass(v) {
+      if (v === null || v === undefined) return 'r-null';
+      if (typeof v === 'boolean') return v ? 'r-bool-true' : 'r-bool-false';
+      if (typeof v === 'number') return 'r-num';
+      return 'r-str';
+    }
+
+    function valDisplay(v) {
+      if (v === null || v === undefined) return 'null';
+      if (typeof v === 'boolean') return v ? 'true' : 'false';
+      return String(v);
+    }
+
+    // Recursive renderer for better nested objects UI display (Facilities & Operations)
+    function renderFields(obj) {
+      const skip = ['id'];
+      return Object.entries(obj).filter(([k]) => !skip.includes(k)).map(([k, v]) => {
+        if (typeof v === 'object' && v !== null) {
+          if (Array.isArray(v)) {
+            const arrHtml = v.length === 0
+              ? '<span class="r-null">[]</span>'
+              : `<div style="margin-top:6px; display:flex; flex-direction:column; gap:6px;">${v.map((item, i) => `<div style="padding:8px 10px; background:#0f172a; border-radius:6px; border:1px solid #334155;">${typeof item === 'object' ? renderFields(item) : item}</div>`).join('')}</div>`;
+            return `<div class="r-field" style="flex-direction:column; align-items:stretch; border-bottom:0.5px solid #334155; padding-bottom:12px;"><span class="r-key" style="color:#38bdf8">${k} [${v.length}]</span>${arrHtml}</div>`;
+          } else {
+            return `<div class="r-field" style="flex-direction:column; align-items:stretch; border-bottom:0.5px solid #334155; padding-bottom:12px;"><span class="r-key" style="color:#38bdf8">${k}</span><div style="margin-top:6px; padding:10px; background:#0f172a; border-radius:6px; border:1px solid #334155;">${renderFields(v)}</div></div>`;
+          }
+        }
+        return `<div class="r-field"><span class="r-key">${k}</span><span class="r-val ${valClass(v)}">${valDisplay(v)}</span></div>`;
+      }).join('');
+    }
+
+    function renderPretty(data) {
+      const el = document.getElementById('view-pretty');
+      if (!data) { el.innerHTML = '<div class="r-empty">Belum ada response.</div>'; return; }
+
+      if (Array.isArray(data)) {
+        el.innerHTML = `<div class="array-count"><i class="ti ti-list" aria-hidden="true" style="font-size:13px;vertical-align:-2px;margin-right:4px"></i>${data.length} item ditemukan</div>` +
+          data.map((item, i) => {
+            const name = item.name || item.id || `Item ${i + 1}`;
+            return `<div class="r-array-item">
+          <div class="r-array-header">
+            <span class="r-array-num">#${i + 1}</span>
+            <span style="font-size:13px;font-weight:600;color:#e2e8f0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</span>
+            ${item.id ? `<span style="font-size:10px;color:#475569;font-family:monospace">${item.id.slice(0, 8)}…</span>` : ''}
+          </div>
+          ${renderFields(item)}
+        </div>`;
+          }).join('');
+        return;
+      }
+
+      if (typeof data === 'object') {
+        const status = data.status || '';
+        const isDemo = status.toLowerCase && status.toLowerCase().includes('demo');
+        const isError = data.error || data.statusCode >= 400;
+        const isSuccess = !isError && (data.data || data.id || data.name || status.includes('Success'));
+        let badgeHtml = '';
+        if (isError) badgeHtml = `<span class="r-badge error"><i class="ti ti-alert-circle" aria-hidden="true" style="font-size:11px"></i> Error</span>`;
+        else if (isDemo) badgeHtml = `<span class="r-badge demo"><i class="ti ti-cpu" aria-hidden="true" style="font-size:11px"></i> Demo</span>`;
+        else if (isSuccess) badgeHtml = `<span class="r-badge success"><i class="ti ti-check" aria-hidden="true" style="font-size:11px"></i> Success</span>`;
+
+        let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">${badgeHtml}<span style="font-size:10px;color:#475569">${new Date().toLocaleTimeString('id-ID')}</span></div>`;
+
+        const mainObj = data.data || data;
+        if (typeof mainObj === 'object' && !Array.isArray(mainObj)) {
+          html += `<div class="r-card">${renderFields(mainObj)}</div>`;
+        } else if (Array.isArray(mainObj)) {
+          html += mainObj.length === 0 ? `<div class="r-empty">[]</div>` : mainObj.map((item, i) => `<div class="r-card" style="margin-top:8px"><div class="r-section-title">Item ${i + 1}</div>${renderFields(item)}</div>`).join('');
+        }
+
+        if (data.message) {
+          html += `<div style="margin-top:10px;padding:10px 12px;background:#1e293b;border-radius:8px;font-size:12px;color:#94a3b8"><i class="ti ti-info-circle" aria-hidden="true" style="font-size:13px;vertical-align:-2px;margin-right:5px"></i>${data.message}</div>`;
+        }
+        el.innerHTML = html;
+        return;
+      }
+      el.innerHTML = `<div style="font-size:13px;color:#e2e8f0;padding:8px">${String(data)}</div>`;
+    }
+
+    function displayResponse(data, isError) {
+      lastData = data;
+      document.getElementById('response').style.color = isError ? '#f87171' : '#10b981';
+      document.getElementById('response').textContent = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+      renderPretty(data);
+    }
+
+    async function request(url, options) {
+      try {
+        const res = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...(options || {}) });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        try { const json = JSON.parse(text); displayResponse(json, false); return { data: json, error: null }; }
+        catch { displayResponse(text, false); return { data: text, error: null }; }
+      } catch (e) { return { data: null, error: e.message }; }
+    }
+
+    function plotCafesOnMap(cafes) {
+      if (!map || !markersLayer) return;
+      markersLayer.clearLayers();
+      const bounds = [];
+      const currentSelectedId = getCafeId();
+
+      cafes.forEach(cafe => {
+        const { lat, lng } = getCoordinates(cafe);
+
+        if (!isNaN(lat) && !isNaN(lng)) {
+          const isSelected = (cafe.id === currentSelectedId);
+          const markerIcon = makeSvgIcon(isSelected ? '#ef4444' : '#3b82f6', isSelected);
+
+          const m = L.marker([lat, lng], { icon: markerIcon }).bindPopup(`<b>${cafe.name || 'Cafe'}</b><br><small>${cafe.address || ''}</small>`);
+          m.cafeId = cafe.id;
+
+          markersLayer.addLayer(m);
+          bounds.push([lat, lng]);
+
+          if (isSelected) {
+            setTimeout(() => m.openPopup(), 200);
+          }
+        }
+      });
+      if (bounds.length > 0) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+    }
+
+    function renderCafeList(data) {
+      const el = document.getElementById('cafeList');
+      el.innerHTML = '';
+      plotCafesOnMap(data);
+      const currentSelectedId = getCafeId();
+
+      data.forEach(cafe => {
+        const div = document.createElement('div');
+        const isSelected = (cafe.id === currentSelectedId);
+        div.className = 'cafe-card' + (isSelected ? ' active' : '');
+
+        const seed = encodeURIComponent(cafe.name || 'cafe');
+        const { lat, lng } = getCoordinates(cafe);
+
+        // Generate badges logic
+        const locBadge = !isNaN(lat) && !isNaN(lng)
+          ? `<span class="info-badge location"><i class="ti ti-map-pin" style="font-size:12px"></i> ${lat.toFixed(3)}, ${lng.toFixed(3)}</span>`
+          : `<span class="info-badge no-location"><i class="ti ti-map-pin-off" style="font-size:12px"></i> No Location</span>`;
+
+        const facBadge = cafe.facility
+          ? `<span class="info-badge facility"><i class="ti ti-building" style="font-size:12px"></i> Facilities</span>` : '';
+
+        const opsBadge = (cafe.operationalHours && cafe.operationalHours.length > 0)
+          ? `<span class="info-badge hours"><i class="ti ti-clock" style="font-size:12px"></i> ${cafe.operationalHours.length} Days</span>` : '';
+
+        div.innerHTML = `
+          <div class="cafe-avatar"><img src="https://api.dicebear.com/7.x/initials/svg?seed=${seed}&backgroundColor=3b82f6&textColor=ffffff" alt=""/></div>
+          <div style="flex:1;min-width:0">
+            <div class="cafe-name">${cafe.name || 'Unnamed'}</div>
+            <div class="cafe-addr">${cafe.address || 'No address'}</div>
+            <div class="cafe-id-tag">${cafe.id}</div>
+            <div class="info-badges">${locBadge}${facBadge}${opsBadge}</div>
+          </div>
+        `;
+
+        div.onclick = () => {
+          document.querySelectorAll('.cafe-card').forEach(c => c.classList.remove('active'));
+          div.classList.add('active');
+
+          document.getElementById('cafeId').value = cafe.id;
+          document.getElementById('formName').value = cafe.name || '';
+          document.getElementById('formDesc').value = cafe.description || '';
+          document.getElementById('formAddress').value = cafe.address || '';
+
+          document.getElementById('formLat').value = !isNaN(lat) ? lat : '';
+          document.getElementById('formLng').value = !isNaN(lng) ? lng : '';
+
+          // Set Active state to map icon
+          markersLayer.eachLayer(m => {
+            const isMarkerActive = (m.cafeId === cafe.id);
+            m.setIcon(makeSvgIcon(isMarkerActive ? '#ef4444' : '#3b82f6', isMarkerActive));
+            if (isMarkerActive) m.openPopup();
+          });
+
+          if (!isNaN(lat) && !isNaN(lng)) {
+            map.flyTo([lat, lng], 16, { animate: true, duration: 1.2 });
+          }
+          displayResponse(cafe, false);
+        };
+        el.appendChild(div);
+      });
+    }
+
+    async function getAllCafes() {
+      const result = await request(`${BASE_URL}/cafes`);
+      const badge = document.getElementById('apiStatus');
+      if (result && result.data && Array.isArray(result.data)) {
+        badge.innerHTML = '<span class="dot"></span> API Connected'; badge.className = 'status-pill pill-online';
+        renderCafeList(result.data);
+      } else {
+        badge.innerHTML = '<span class="dot"></span> Demo Mode'; badge.className = 'status-pill pill-offline';
+        renderCafeList(MOCK_CAFES);
+        displayResponse({ status: 'Demo Mode', message: 'Cannot connect to local API. Using mock data.', simulated_items: MOCK_CAFES });
+      }
+    }
+
+    async function getCafeById() {
+      const result = await request(`${BASE_URL}/cafes/${getCafeId()}`);
+      if (result.error) {
+        const c = MOCK_CAFES.find(c => c.id === getCafeId());
+        c ? displayResponse({ status: 'Success (Demo)', data: c }) : displayResponse({ error: 'Not Found', message: `ID ${getCafeId()} not in mock DB` }, true);
+      }
+    }
+
+    async function createCafe() {
+      const name = document.getElementById('formName').value || 'Kedai Kopi Baru';
+      const description = document.getElementById('formDesc').value || 'Cafe baru yang estetik';
+      const address = document.getElementById('formAddress').value || 'Jl. Sudirman No. 22';
+      const latitude = parseFloat(document.getElementById('formLat').value) || -6.210000;
+      const longitude = parseFloat(document.getElementById('formLng').value) || 106.820000;
+
+      const payload = {
+        ownerId: 'user-1', name, description, address, latitude, longitude,
+        facility: { hasWifi: true, hasPlugs: true, seatingCapacity: 40, noiseLevel: 'low' }
+      };
+
+      const result = await request(`${BASE_URL}/cafes`, { method: 'POST', body: JSON.stringify(payload) });
+      if (result.error) {
+        const nw = { id: 'mock-' + Math.random().toString(36).substr(2, 9), ...payload };
+        MOCK_CAFES.push(nw);
+        document.getElementById('cafeId').value = nw.id;
+        displayResponse({ status: 'Success (Demo)', data: nw });
+      }
+      getAllCafes();
+    }
+
+    async function updateCafe() {
+      const payload = {};
+      const n = document.getElementById('formName').value; if (n) payload.name = n;
+      const d = document.getElementById('formDesc').value; if (d) payload.description = d;
+      const a = document.getElementById('formAddress').value; if (a) payload.address = a;
+
+      const result = await request(`${BASE_URL}/cafes/${getCafeId()}`, { method: 'PUT', body: JSON.stringify(payload) });
+      if (result.error) {
+        const i = MOCK_CAFES.findIndex(c => c.id === getCafeId());
+        if (i !== -1) {
+          MOCK_CAFES[i] = { ...MOCK_CAFES[i], ...payload };
+          displayResponse({ status: 'Success (Demo)', data: MOCK_CAFES[i] });
+        } else {
+          displayResponse({ error: 'Not Found' }, true);
+        }
+      }
+      getAllCafes();
+    }
+
+    async function deleteCafe() {
+      if (!confirm('Yakin hapus cafe ini?')) return;
+      const result = await request(`${BASE_URL}/cafes/${getCafeId()}`, { method: 'DELETE' });
+      if (result.error) {
+        const i = MOCK_CAFES.findIndex(c => c.id === getCafeId());
+        if (i !== -1) {
+          const del = MOCK_CAFES.splice(i, 1);
+          displayResponse({ status: 'Success (Demo)', deleted: del[0] });
+        } else {
+          displayResponse({ error: 'Not Found' }, true);
+        }
+      }
+      getAllCafes();
+    }
+
+    async function updateLocation() {
+      const payload = { latitude: -6.201234, longitude: 106.817890 };
+      const result = await request(`${BASE_URL}/cafes/${getCafeId()}/location`, { method: 'PUT', body: JSON.stringify(payload) });
+      if (result.error) {
+        const c = MOCK_CAFES.find(c => c.id === getCafeId());
+        if (c) {
+          c.latitude = payload.latitude;
+          c.longitude = payload.longitude;
+          displayResponse({ status: 'Success (Demo)', data: c });
+        }
+      }
+      getAllCafes();
+    }
+
+    async function removeLocation() {
+      const result = await request(`${BASE_URL}/cafes/${getCafeId()}/location`, { method: 'DELETE' });
+      if (result.error) {
+        const c = MOCK_CAFES.find(c => c.id === getCafeId());
+        if (c) {
+          delete c.latitude; delete c.longitude;
+          if (c.location) delete c.location;
+          displayResponse({ status: 'Success (Demo)', data: c });
+        }
+      }
+      getAllCafes();
+    }
+
+    async function updateFacilities() {
+      const payload = { hasWifi: true, hasPlugs: false, seatingCapacity: 60, noiseLevel: 'medium' };
+      const result = await request(`${BASE_URL}/cafes/${getCafeId()}/facilities`, { method: 'PUT', body: JSON.stringify(payload) });
+      if (result.error) {
+        const c = MOCK_CAFES.find(c => c.id === getCafeId());
+        if (c) { c.facility = payload; displayResponse({ status: 'Success (Demo)', data: c }); }
+      }
+      getAllCafes();
+    }
+
+    async function removeFacilities() {
+      const result = await request(`${BASE_URL}/cafes/${getCafeId()}/facilities`, { method: 'DELETE' });
+      if (result.error) {
+        const c = MOCK_CAFES.find(c => c.id === getCafeId());
+        if (c) { delete c.facility; displayResponse({ status: 'Success (Demo)', data: c }); }
+      }
+      getAllCafes();
+    }
+
+    async function updateOperationalHours() {
+      const payload = { hours: [{ dayOfWeek: 0, openTime: '08:00', closeTime: '17:00', isClosed: false }, { dayOfWeek: 1, openTime: '08:00', closeTime: '20:00', isClosed: false }] };
+      const result = await request(`${BASE_URL}/cafes/${getCafeId()}/operational-hours`, { method: 'PUT', body: JSON.stringify(payload) });
+      if (result.error) {
+        const c = MOCK_CAFES.find(c => c.id === getCafeId());
+        if (c) { c.operationalHours = payload.hours; displayResponse({ status: 'Success (Demo)', data: c }); }
+      }
+      getAllCafes();
+    }
+
+    async function removeOperationalHours() {
+      const result = await request(`${BASE_URL}/cafes/${getCafeId()}/operational-hours`, { method: 'DELETE' });
+      if (result.error) {
+        const c = MOCK_CAFES.find(c => c.id === getCafeId());
+        if (c) { c.operationalHours = []; displayResponse({ status: 'Success (Demo)', data: c }); }
+      }
+      getAllCafes();
+    }
+
+    async function geocodeAddress() { await request(`${BASE_URL}/cafes/geocode/${getCafeId()}`, { method: 'POST' }); }
+    async function createClaim() {
+      await request(`${BASE_URL}/cafes/${getCafeId()}/claims`, {
+        method: 'POST',
+        body: JSON.stringify({
+          cafeId: getCafeId(),
+          userId: 'user-2',
+          proofUrl: 'https://example.com/proof.jpg',
+          status: 'PENDING'
+        })
+      });
+    }
+    async function updateClaimStatus() { await request(`${BASE_URL}/cafes/claims/${getCafeId()}/status`, { method: 'PATCH', body: JSON.stringify({ cafeId: getCafeId(), status: 'APPROVED' }) }); }
+
+    window.addEventListener('load', () => { initMap(); getAllCafes(); });
+  </script>
+</body>
+
+</html>
