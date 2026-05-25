@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -9,21 +10,13 @@ import cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  /**
-   * Security Headers
-   */
   app.use(helmet());
 
-  /**
-   * Enable CORS
-   */
   app.enableCors({
     origin: true,
     credentials: true,
   });
-  /**
-   * Validation
-   */
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -32,13 +25,10 @@ async function bootstrap() {
     }),
   );
 
-  /**
-   * Rate Limiting
-   */
   app.use(
     rateLimit({
-      windowMs: 15 * 60 * 1000, // 15 menit
-      max: 100, // max request per IP
+      windowMs: 15 * 60 * 1000,
+      max: 100,
       message: {
         statusCode: 429,
         message: 'Too many requests, please try again later.',
@@ -48,26 +38,29 @@ async function bootstrap() {
     }),
   );
 
-  /**
-   * Compression
-   */
   app.use(compression());
-
-  /**
-   * Cookie Parser
-   */
   app.use(cookieParser());
-
-  /**
-   * Graceful Shutdown
-   */
   app.enableShutdownHooks();
 
   const port = process.env.PORT ?? 3030;
 
+  // Swagger setup
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('CafeScope API Gateway')
+    .setDescription('API Gateway for CafeScope microservices')
+    .setVersion('1.0')
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'authorization',
+    )
+    .build();
+
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('docs', app, document);
+
   await app.listen(port);
 
-  console.log(`🚀 API Gateway running on http://localhost:${port}/api`);
+  console.log(`🚀 API Gateway running on http://localhost:${port}`);
 }
 
 bootstrap();

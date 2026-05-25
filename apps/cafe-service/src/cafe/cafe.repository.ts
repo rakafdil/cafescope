@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, ClaimStatus } from '@prisma/client';
 
@@ -180,9 +180,17 @@ export class CafeRepository {
   }
 
   async updateClaimStatus(claimId: string, status: ClaimStatus) {
-    return this.prisma.claim.update({
+    const result = await this.prisma.claim.updateMany({
       where: { id: claimId },
       data: { status },
+    });
+
+    if (result.count === 0) {
+      throw new NotFoundException(`Claim dengan ID ${claimId} tidak ditemukan`);
+    }
+
+    return this.prisma.claim.findUnique({
+      where: { id: claimId },
     });
   }
 }
